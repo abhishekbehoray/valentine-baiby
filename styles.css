@@ -83,3 +83,13 @@ button#back,button#open{background:#444}
 .cta-text{font-size:0.95rem}
 .cta-icon{animation:cta-beat 1.6s ease-in-out infinite}
 @keyframes cta-beat{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+/* developer credit corner */
+.dev-credit{position:fixed;left:10px;bottom:8px;z-index:1120;color:rgba(255,255,255,0.78);background:rgba(0,0,0,0.22);padding:4px 8px;border-radius:6px;font-size:0.72rem;text-decoration:none;backdrop-filter:blur(4px);pointer-events:auto}
+.dev-credit:hover{color:#fff;background:rgba(0,0,0,0.32)}
+
+/* Instagram floating badge */
+.insta-float{position:fixed;top:24px;right:24px;z-index:1200;display:flex;align-items:center;gap:8px;padding:10px 18px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;border-radius:30px;text-decoration:none;font-weight:600;font-size:0.9rem;box-shadow:0 4px 15px rgba(220,39,67,0.4);transition:transform 0.3s ease,box-shadow 0.3s ease;border:1px solid rgba(255,255,255,0.2)}
+.insta-float:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(220,39,67,0.6)}
+.insta-float span{font-size:1.1rem}
+@media(max-width:640px){.insta-float{top:auto;bottom:96px;right:20px}}

@@ -67,9 +67,7 @@ if(document.getElementById('wishForm')){
     result.classList.remove('hidden');
     shareLink.value = url;
     showConfetti();
-    // populate debug area with direct link/token so users can open manually
-    const dbg = document.getElementById('debugArea');
-    if(dbg){ dbg.classList.remove('hidden'); const link = document.getElementById('debugLink'); const tbox = document.getElementById('debugToken'); const pre = document.getElementById('debugJson'); if(link) link.href = url; if(tbox) tbox.value = token; if(pre) pre.textContent = JSON.stringify(payload, null, 2); }
+    // debug panel removed — no direct-token UI shown
   });
 
   preview.addEventListener('click',()=>{
