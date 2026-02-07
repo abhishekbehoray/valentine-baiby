@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Receive anonymous Valentine wishes. Powered by Uttaranchal University Club Expression - A Literacy Club for Students">
+  <meta name="author" content="Uttaranchal University Club Expression">
+  <title>Valentine Wish - Uttaranchal University Club Expression</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas id="bgCanvas" class="bg-canvas"></canvas>
+  <!-- Circular red thread background pattern -->
+  <svg class="red-thread-bg" viewBox="0 0 1000 1200" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="threadGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#d62828;stop-opacity:0.6" />
+        <stop offset="50%" style="stop-color:#b01414;stop-opacity:0.85" />
+        <stop offset="100%" style="stop-color:#c51c1c;stop-opacity:0.6" />
+      </linearGradient>
+      <filter id="threadBlur">
+        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+    <!-- Extended thread path connecting pages from edges -->
+    <path class="thread-spiral" d="M 0 50 L 100 20 Q 400 100 500 200 Q 700 350 850 300 Q 950 250 1000 100 M 1000 1100 L 900 1150 Q 600 1100 500 950 Q 300 800 150 900 Q 50 950 0 1100" fill="none" stroke="url(#threadGrad)" stroke-width="4" stroke-linecap="round" filter="url(#threadBlur)" stroke-dasharray="2000" stroke-dashoffset="2000"/>
+    <!-- Decorative circles along path -->
+    <circle class="thread-accent-1" cx="100" cy="30" r="5" fill="#c51c1c" opacity="0.6"/>
+    <circle class="thread-accent-2" cx="400" cy="120" r="4.5" fill="#d62828" opacity="0.7"/>
+    <circle class="thread-accent-3" cx="700" cy="350" r="5" fill="#c51c1c" opacity="0.6"/>
+    <circle class="thread-accent-4" cx="850" cy="200" r="4.5" fill="#d62828" opacity="0.7"/>
+    <circle class="thread-accent-5" cx="900" cy="1150" r="5" fill="#c51c1c" opacity="0.6"/>
+    <circle class="thread-accent-6" cx="500" cy="950" r="4.5" fill="#d62828" opacity="0.7"/>
+  </svg>
+  <div class="hearts-svg" aria-hidden="true">
+    <svg viewBox="0 0 100 100" class="heart-svg h1"><path d="M50 80 L20 45 A15 15 0 1 1 50 30 A15 15 0 1 1 80 45 Z"/></svg>
+    <svg viewBox="0 0 100 100" class="heart-svg h2"><path d="M50 80 L20 45 A15 15 0 1 1 50 30 A15 15 0 1 1 80 45 Z"/></svg>
+  </div>
+  <div class="bg-blob blob1"></div>
+  <div class="bg-blob blob2"></div>
+  <main class="container">
+    <div id="wishCard" class="card hidden">
+      <h2 id="toHeading"></h2>
+      <p id="quoteLine" class="quote"></p>
+      <p id="messageText" class="message"></p>
+      <p id="fromLine" class="from">— (an anonymous friend)</p>
+      <div class="row">
+        <button id="back">Back</button>
+      </div>
+
+      <div id="shareArea" class="row" style="margin-top:12px">
+        <input id="shareLinkWish" readonly style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:#fff">
+        <button id="copyWish">Copy</button>
+        <button id="shareWish">Share</button>
+      </div>
+    </div>
+
+    <div id="error" class="hidden">
+      <p>We couldn't find a wish in the link. Make sure you opened a complete share link.</p>
+      <a href="index.html">Create a wish</a>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p><strong>Powered by Uttaranchal University Club Expression</strong></p>
+    <p class="footer-desc">A Literacy Club for the Students of Uttaranchal University</p>
+    <p class="footer-copyright">© 2026 Uttaranchal University Club Expression. All rights reserved.</p>
+  </footer>
+
+  <!-- Floating CTA: redirect to IGP (editable via data-target) -->
+  <a id="ctaIg" class="cta-ig" href="#" data-target="https://www.igp.com" target="_blank" rel="noopener" aria-label="Send a gift via IGP">
+    <span class="cta-icon">🎁</span>
+    <span class="cta-text">Send a gift via IGP</span>
+  </a>
+
+  <script src="script.js"></script>
+</body>
+</html>

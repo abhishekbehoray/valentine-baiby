@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Send anonymous Valentine wishes. Powered by Uttaranchal University Club Expression - A Literacy Club for Students">
+  <meta name="author" content="Uttaranchal University Club Expression">
+  <title>Anonymous Valentine Wish - Uttaranchal University Club Expression</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+</head>
+<body>
+  <canvas id="bgCanvas" class="bg-canvas"></canvas>
+  <!-- Circular red thread background pattern -->
+  <svg class="red-thread-bg" viewBox="0 0 1000 1200" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="threadGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#c51c1c;stop-opacity:0.6" />
+        <stop offset="50%" style="stop-color:#b01414;stop-opacity:0.85" />
+        <stop offset="100%" style="stop-color:#d62828;stop-opacity:0.6" />
+      </linearGradient>
+      <filter id="threadBlur">
+        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+    <!-- Extended thread path connecting pages from edges -->
+    <path class="thread-spiral" d="M 0 50 L 100 20 Q 400 100 500 200 Q 700 350 850 300 Q 950 250 1000 100 M 1000 1100 L 900 1150 Q 600 1100 500 950 Q 300 800 150 900 Q 50 950 0 1100" fill="none" stroke="url(#threadGrad)" stroke-width="4" stroke-linecap="round" filter="url(#threadBlur)" stroke-dasharray="2000" stroke-dashoffset="2000"/>
+    <!-- Decorative circles along path -->
+    <circle class="thread-accent-1" cx="100" cy="30" r="5" fill="#c51c1c" opacity="0.6"/>
+    <circle class="thread-accent-2" cx="400" cy="120" r="4.5" fill="#d62828" opacity="0.7"/>
+    <circle class="thread-accent-3" cx="700" cy="350" r="5" fill="#c51c1c" opacity="0.6"/>
+    <circle class="thread-accent-4" cx="850" cy="200" r="4.5" fill="#d62828" opacity="0.7"/>
+    <circle class="thread-accent-5" cx="900" cy="1150" r="5" fill="#c51c1c" opacity="0.6"/>
+    <circle class="thread-accent-6" cx="500" cy="950" r="4.5" fill="#d62828" opacity="0.7"/>
+  </svg>
+  <div class="hearts-svg" aria-hidden="true">
+    <svg viewBox="0 0 100 100" class="heart-svg h1"><path d="M50 80 L20 45 A15 15 0 1 1 50 30 A15 15 0 1 1 80 45 Z"/></svg>
+    <svg viewBox="0 0 100 100" class="heart-svg h2"><path d="M50 80 L20 45 A15 15 0 1 1 50 30 A15 15 0 1 1 80 45 Z"/></svg>
+    <svg viewBox="0 0 100 100" class="heart-svg h3"><path d="M50 80 L20 45 A15 15 0 1 1 50 30 A15 15 0 1 1 80 45 Z"/></svg>
+  </div>
+  <main class="container">
+    <h1 class="logo"><span class="spark">💖</span> Send an anonymous Valentine wish</h1>
+
+    <form id="wishForm" class="composer">
+      <label>To (name shown on the wish):
+        <input type="text" id="toName" placeholder="e.g. Alex" maxlength="50">
+      </label>
+
+      <label>Your Quote:
+        <div class="message-row">
+          <textarea id="message" placeholder="Write your wish..." maxlength="600"></textarea>
+          <div class="emoji-panel" id="emojiPanel">
+            <button type="button" class="emoji">😍</button>
+            <button type="button" class="emoji">😘</button>
+            <button type="button" class="emoji">🥰</button>
+            <button type="button" class="emoji">🔥</button>
+            <button type="button" class="emoji">🌹</button>
+            <button type="button" class="emoji">💘</button>
+          </div>
+        </div>
+      </label>
+
+      <label>Sender name (will remain hidden on site):
+        <input type="text" id="fromName" placeholder="(optional)" maxlength="50">
+      </label>
+
+      <div class="row actions">
+        <button type="button" id="generate">Generate link</button>
+        <button type="button" id="preview">Preview</button>
+        <button type="button" id="shareWA">Share on WhatsApp</button>
+      </div>
+    </form>
+
+    <section id="result" class="hidden">
+      <p>Share this link to let them view the wish (it contains the wish data encoded in the URL):</p>
+      <input id="shareLink" readonly>
+      <div class="row">
+        <button id="copy">Copy link</button>
+        <button id="open">Open in new tab</button>
+      </div>
+      <p class="note">Tip: You can paste the link into WhatsApp, Facebook, or email. The wish is anonymous when viewed here.</p>
+    </section>
+
+    <!-- Inline preview so composer can show how the wish will look without opening a new tab -->
+    <section id="previewCard" class="card hidden" aria-live="polite">
+      <h2 id="previewTo"></h2>
+      <p id="previewQuote" class="quote"></p>
+      <p id="previewMessage" class="message"></p>
+      <p id="previewFrom" class="from">— (an anonymous friend)</p>
+      <div class="row">
+        <button id="previewOpen">Open full page</button>
+      </div>
+    </section>
+
+    <!-- Debug panel (appears after Generate) -->
+    <section id="debugArea" class="card hidden" style="margin-top:12px">
+      <h3>Debug / Direct Open</h3>
+      <p>If Preview doesn't navigate, click the link below or copy the token and open it manually.</p>
+      <a id="debugLink" href="#" target="_self">Open wish page</a>
+      <div style="margin-top:8px">
+        <label>Raw token (d=):</label>
+        <textarea id="debugToken" readonly style="width:100%;height:64px"></textarea>
+      </div>
+      <div style="margin-top:8px">
+        <label>Decoded payload:</label>
+        <pre id="debugJson" style="white-space:pre-wrap;background:#111;padding:8px;border-radius:6px;color:#fff;max-height:200px;overflow:auto"></pre>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p><strong>Powered by Uttaranchal University Club Expression</strong></p>
+      <p class="footer-desc">A Literacy Club for the Students of Uttaranchal University</p>
+      <p class="footer-copyright">© 2026 Uttaranchal University Club Expression. All rights reserved.</p>
+    </footer>
+  </main>
+
+    <!-- Floating CTA: redirect to IGP (editable via data-target) -->
+    <a id="ctaIg" class="cta-ig" href="#" data-target="https://www.igp.com" target="_blank" rel="noopener" aria-label="Send a gift via IGP">
+      <span class="cta-icon">🎁</span>
+      <span class="cta-text">Send a gift via IGP</span>
+    </a>
+
+
+  <script src="script.js"></script>
+</body>
+</html>
