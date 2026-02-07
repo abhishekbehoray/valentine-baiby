@@ -156,7 +156,8 @@ if(document.getElementById('wishCard') || document.getElementById('error')){
     showConfetti();
 
     // Download as image: simple canvas render (includes image when present)
-    document.getElementById('downloadBtn')?.addEventListener('click',()=>{
+    const dlBtn = document.getElementById('downloadBtn');
+    if(dlBtn) dlBtn.addEventListener('click',()=>{
       const w = 900, h = 900;
       const cnv = document.createElement('canvas'); cnv.width = w; cnv.height = h;
       const ctx = cnv.getContext('2d');
@@ -184,8 +185,11 @@ if(document.getElementById('wishCard') || document.getElementById('error')){
       } else drawAndFinish();
     });
 
-    document.getElementById('back').addEventListener('click',()=> location.href='index.html');
-    document.getElementById('homeBtn')?.addEventListener('click',()=> location.href='index.html');
+    const backBtn = document.getElementById('back');
+    if(backBtn) backBtn.addEventListener('click',()=> window.location.href='index.html');
+
+    const homeBtn = document.getElementById('homeBtn');
+    if(homeBtn) homeBtn.addEventListener('click',()=> window.location.href='index.html');
   }
 }
 

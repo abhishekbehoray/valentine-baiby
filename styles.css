@@ -40,7 +40,7 @@ button#back,button#open{background:#444}
 @keyframes fall{to{transform:translateY(120vh) rotate(360deg);opacity:1}}
 
 /* small responsive tweaks */
-@media(max-width:640px){.container{padding:16px}.message-row{flex-direction:column}.emoji-panel{flex-direction:row}}
+@media(max-width:640px){.container{padding:16px;padding-bottom:160px}.message-row{flex-direction:column}.emoji-panel{flex-direction:row}}
 
 /* background canvas and heart SVGs */
 .bg-canvas{position:fixed;left:0;top:0;width:100%;height:100%;z-index:0;pointer-events:none}
