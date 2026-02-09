@@ -1,3 +1,31 @@
+// Import Firebase SDKs
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+// --- FIREBASE CONFIGURATION ---
+// TODO: Replace this with your actual Firebase project config from console.firebase.google.com
+// PASTE YOUR COPIED CONFIG HERE OVER THESE PLACEHOLDERS
+
+ const firebaseConfig = {
+  apiKey: "AIzaSyAtx5iZmWd-QfvyZ7pY4VyDnqlc6XMlW_c",
+  authDomain: "valentine-wish-v2.firebaseapp.com",
+  projectId: "valentine-wish-v2",
+  storageBucket: "valentine-wish-v2.firebasestorage.app",
+  messagingSenderId: "941252582001",
+  appId: "1:941252582001:web:dd55f4d6e722152db159d0"
+};
+
+// Safety check: Alert if config is still default
+if (firebaseConfig.apiKey.includes("REPLACE")) {
+  alert("Setup Required: You need to replace the placeholder keys in script.js with your NEW Firebase Project configuration.");
+}
+
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
 // Common util: base64 encode/decode for URL-safe strings
 function encodeData(obj){
   const s = JSON.stringify(obj);
@@ -29,73 +57,180 @@ function showConfetti(){
   setTimeout(()=>conf.remove(),2600);
 }
 
-// index.html behaviour
-if(document.getElementById('wishForm')){
-  const toName = document.getElementById('toName');
-  const message = document.getElementById('message');
-  // quote input is optional in the markup; handle if it's missing
-  const quote = document.getElementById('quote');
-  const fromName = document.getElementById('fromName');
-  const generate = document.getElementById('generate');
-  const preview = document.getElementById('preview');
-  const shareWA = document.getElementById('shareWA');
-  const result = document.getElementById('result');
-  const shareLink = document.getElementById('shareLink');
-  const copy = document.getElementById('copy');
-  const open = document.getElementById('open');
-  const emojiPanel = document.getElementById('emojiPanel');
+// --- MAIN APP LOGIC ---
 
-  // emoji clicks -> append to message
+const wishForm = document.getElementById('wishForm');
+const createLinkSection = document.getElementById('createLinkSection');
+const inboxSection = document.getElementById('inboxSection');
+
+// 1. SENDER & RECEIVER FLOW (index.html)
+if(wishForm && createLinkSection){
+  const urlParams = new URLSearchParams(window.location.search);
+  const toParam = urlParams.get('to');
+
+  // Emoji panel logic
+  const emojiPanel = document.getElementById('emojiPanel');
+  const messageInput = document.getElementById('message');
   if(emojiPanel){
     emojiPanel.addEventListener('click', e=>{
       if(e.target.classList.contains('emoji')){
-        message.value += (message.value ? ' ' : '') + e.target.textContent;
+        messageInput.value += (messageInput.value ? ' ' : '') + e.target.textContent;
       }
     });
   }
 
-  function buildLink(){
-    const payload = {to:toName.value.trim(),message:message.value.trim(),quote:(quote ? quote.value : ''),from:fromName.value.trim(),t:Date.now()}
-    const token = encodeData(payload);
-    // Use URL constructor so relative/absolute resolution works correctly on the web and file://
-    const url = new URL('wish.html?d=' + token, location.href).href;
-    return {url,token,payload};
-  }
+  if (toParam) {
+    // --- SENDER MODE (Writing to someone) ---
+    // Hide inbox/create sections, show write form
+    createLinkSection.style.display = 'none';
+    inboxSection.style.display = 'none';
+    wishForm.style.display = 'block';
 
-  generate.addEventListener('click',()=>{
-    const {url, token, payload} = buildLink();
-    result.classList.remove('hidden');
-    shareLink.value = url;
-    showConfetti();
-    // debug panel removed — no direct-token UI shown
-  });
+    // Decode recipient name
+    try {
+      // The 'to' param is the UID. We might want to fetch the name from DB, 
+      // but for simplicity, let's assume the link might also carry a name or we just say "Send a wish"
+      // If you want to show the name, you'd need to fetch the user profile from Firestore here.
+      // For now, we'll just set the UI.
+      const toInput = document.getElementById('toName');
+      toInput.value = "Anonymous User"; // Placeholder or fetch from DB
+      toInput.readOnly = true;
+      toInput.style.opacity = '0.7';
+      
+      const logo = document.querySelector('.logo');
+      if(logo) logo.innerHTML = `<span class="spark">💖</span> Send a secret wish`;
 
-  preview.addEventListener('click',()=>{
-    // Navigate directly to the wish viewer (avoid popup blockers)
-    const {url} = buildLink();
-    location.href = url;
-  });
+      // Handle Send
+      const sendBtn = document.getElementById('sendBtn');
+      sendBtn.addEventListener('click', async () => {
+        const msg = messageInput.value.trim();
+        if(!msg) return alert("Please write a message!");
+        
+        sendBtn.disabled = true;
+        sendBtn.textContent = "Sending...";
 
-  shareWA && shareWA.addEventListener('click',async ()=>{
-    const {url, payload} = buildLink();
-    // Prefer Web Share API when available (mobile)
-    if(navigator.share){
-      try{ await navigator.share({title: `A Valentine wish for ${payload.to||'you'}`, text: payload.message || '', url}); return; }catch(_){}
+        try {
+          await addDoc(collection(db, "messages"), {
+            to: toParam, // The UID from the URL
+            message: msg,
+            quote: document.getElementById('quote')?.value || '',
+            from: document.getElementById('fromName')?.value || '',
+            timestamp: serverTimestamp()
+          });
+          
+          wishForm.style.display = 'none';
+          document.getElementById('sentConfirmation').classList.remove('hidden');
+          showConfetti();
+        } catch (e) {
+          console.error(e);
+          alert("Error sending message: " + e.message);
+          sendBtn.disabled = false;
+        }
+      });
+
+    } catch (e) { console.error(e); }
+
+  } else {
+    // --- RECEIVER MODE (Dashboard/Inbox) ---
+    wishForm.style.display = 'none'; // Hide send form
+    
+    // Check if user is logged in
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is logged in -> Show Inbox
+        createLinkSection.style.display = 'none';
+        inboxSection.style.display = 'block';
+        
+        // Generate Share Link
+        const link = `${window.location.origin}${window.location.pathname}?to=${user.uid}`;
+        document.getElementById('myShareLink').value = link;
+
+        // Listen for messages
+        // Note: Removed orderBy server-side to avoid index creation requirement. Sorting client-side.
+        const q = query(collection(db, "messages"), where("to", "==", user.uid));
+        
+        onSnapshot(q, (snapshot) => {
+          const list = document.getElementById('inboxList');
+          list.innerHTML = '';
+          if(snapshot.empty){
+            list.innerHTML = '<p style="text-align:center;opacity:0.6">No messages yet. Share your link!</p>';
+            return;
+          }
+
+          // Client-side sort (Newest first)
+          const msgs = [];
+          snapshot.forEach(doc => msgs.push(doc.data()));
+          msgs.sort((a,b) => {
+            const tA = a.timestamp ? a.timestamp.seconds : 0;
+            const tB = b.timestamp ? b.timestamp.seconds : 0;
+            return tB - tA;
+          });
+
+          msgs.forEach((data) => {
+            // Create a "View" link that reuses wish.html logic
+            const payload = { to: "You", message: data.message, quote: data.quote, from: data.from };
+            const token = encodeData(payload);
+            const viewUrl = `wish.html?d=${token}`;
+
+            const item = document.createElement('div');
+            item.className = 'card';
+            item.style.padding = '16px';
+            item.style.background = 'rgba(255,255,255,0.05)';
+            item.innerHTML = `
+              <div style="font-weight:bold;color:#ffd3e0;margin-bottom:4px">${data.quote || 'New Wish'}</div>
+              <div style="margin-bottom:12px">${data.message}</div>
+              <a href="${viewUrl}" target="_blank" style="display:inline-block;background:var(--accent);color:white;padding:6px 12px;border-radius:8px;text-decoration:none;font-size:0.85rem">View Card & Reply</a>
+            `;
+            list.appendChild(item);
+          });
+        }, (error) => {
+          console.error("Inbox Error:", error);
+          document.getElementById('inboxList').innerHTML = `<p style="text-align:center;color:#ff6b6b">Error loading messages: ${error.message}</p>`;
+        });
+
+      } else {
+        // User not logged in -> Show Create Inbox
+        createLinkSection.style.display = 'block';
+        inboxSection.style.display = 'none';
+        
+        const createBtn = document.getElementById('createInboxBtn');
+        createBtn.addEventListener('click', () => {
+          const name = document.getElementById('myName').value.trim();
+          if(!name) return alert("Enter your name");
+          
+          createBtn.disabled = true;
+          createBtn.textContent = "Creating...";
+
+          signInAnonymously(auth).then(async (userCredential) => {
+            // Update profile with name so it's associated with the account
+            try {
+              await updateProfile(userCredential.user, { displayName: name });
+            } catch (e) { console.error("Profile update failed", e); }
+          }).catch((error) => {
+            console.error(error);
+            alert("Error creating inbox: " + error.message);
+            createBtn.disabled = false;
+            createBtn.textContent = "Create Inbox";
+          });
+        });
+      }
+    });
+    
+    // Copy link handler
+    const copyBtn = document.getElementById('copyMyLink');
+    const shareInput = document.getElementById('myShareLink');
+    if(copyBtn){
+      copyBtn.addEventListener('click', () => {
+        shareInput.select();
+        shareInput.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(shareInput.value).catch(()=>{});
+        document.execCommand('copy');
+        const original = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        setTimeout(()=>copyBtn.textContent=original, 2000);
+      });
     }
-    // Fallback to WhatsApp Web / App share URL
-    const text = encodeURIComponent(url);
-    window.open('https://wa.me/?text='+text, '_blank');
-  });
-
-  copy && copy.addEventListener('click',()=>{
-    shareLink.select();
-    document.execCommand('copy');
-  });
-
-  open && open.addEventListener('click',()=>{
-    // Use same-window navigation to avoid popup blockers while testing locally
-    location.href = shareLink.value;
-  });
+  }
 }
 
 // Floating CTA click handler (opens Instagram or configured target)
@@ -154,6 +289,32 @@ if(document.getElementById('wishCard') || document.getElementById('error')){
 
     // celebration when viewing
     showConfetti();
+
+    // Inject "Copy Link" button to share the wish URL
+    const actionsRow = card.querySelector('.row') || card.querySelector('.actions');
+    if(actionsRow && !document.getElementById('copyWishUrl')){
+      const copyBtn = document.createElement('button');
+      copyBtn.id = 'copyWishUrl';
+      copyBtn.textContent = 'Copy Link';
+      copyBtn.style.marginRight = '8px';
+      
+      copyBtn.addEventListener('click', ()=>{
+        const url = window.location.href;
+        const tempInput = document.createElement('input');
+        document.body.appendChild(tempInput);
+        tempInput.value = url;
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        setTimeout(()=> copyBtn.textContent = originalText, 2000);
+      });
+      
+      // Insert before other buttons
+      actionsRow.insertBefore(copyBtn, actionsRow.firstChild);
+    }
 
     // Download as image: simple canvas render (includes image when present)
     const dlBtn = document.getElementById('downloadBtn');

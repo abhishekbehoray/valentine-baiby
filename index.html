@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Send anonymous Valentine wishes. Powered by Uttaranchal University Club Expression - A Literacy Club for Students">
-  <meta name="author" content="Uttaranchal University Club Expression">
-  <title>Anonymous Valentine Wish - Uttaranchal University Club Expression</title>
+  <meta name="description" content="Send anonymous Valentine wishes. Powered by Expressions, Literary Club, Uttaranchal Institute of Technology - A Literacy Club for Students">
+  <meta name="author" content="Expressions, Literary Club, Uttaranchal Institute of Technology">
+  <title>Anonymous Valentine Wish - Expressions, Literary Club, Uttaranchal Institute of Technology</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
@@ -71,20 +71,20 @@
       </label>
 
       <div class="row actions">
-        <button type="button" id="generate">Generate link</button>
-        <button type="button" id="preview">Preview</button>
-        <button type="button" id="shareWA">Share on WhatsApp</button>
+        <button type="button" id="sendBtn">Send Wish</button>
+      </div>
+      <div style="margin-top:1.5rem;text-align:center;font-size:0.9rem;opacity:0.8;border-top:1px solid rgba(255,255,255,0.1);padding-top:1rem">
+        Want to receive secret messages too? <a href="index.html" style="color:#ff6b6b;text-decoration:none;font-weight:600">Create your own link &rarr;</a>
       </div>
     </form>
 
-    <section id="result" class="hidden">
-      <p>Share this link to let them view the wish (it contains the wish data encoded in the URL):</p>
-      <input id="shareLink" readonly>
-      <div class="row">
-        <button id="copy">Copy link</button>
-        <button id="open">Open in new tab</button>
+    <section id="sentConfirmation" class="card hidden" style="text-align:center">
+      <h3>✨ Sent!</h3>
+      <p>Your anonymous wish has been delivered to their inbox.</p>
+      <button onclick="window.location.reload()">Send another</button>
+      <div style="margin-top:1.5rem;font-size:0.9rem;opacity:0.8">
+        <a href="index.html" style="color:#ff6b6b;text-decoration:none">Create your own inbox</a>
       </div>
-      <p class="note">Tip: You can paste the link into WhatsApp, Facebook, or email. The wish is anonymous when viewed here.</p>
     </section>
 
     <!-- Inline preview so composer can show how the wish will look without opening a new tab -->
@@ -98,13 +98,40 @@
       </div>
     </section>
 
+    <!-- Section to create a receive link (New Workflow) -->
+    <section id="createLinkSection" class="card">
+      <h3 style="text-align: center; margin-bottom: 1rem;">Create your Inbox 💌</h3>
+      <p style="text-align: center; font-size: 0.9rem; opacity: 0.8; margin-bottom: 1rem;">Create a profile to receive anonymous wishes in your private inbox.</p>
+      <form class="composer" onsubmit="return false;">
+        <label>Your Name:
+          <input type="text" id="myName" placeholder="e.g. Alex">
+        </label>
+        <div class="row actions">
+          <button type="button" id="createInboxBtn">Create Inbox</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Inbox Section (Receiver Dashboard) -->
+    <section id="inboxSection" class="card hidden">
+      <h3 style="text-align: center;">Your Inbox 📬</h3>
+      <div id="inboxList" style="display:flex;flex-direction:column;gap:12px;margin-top:16px">
+        <p style="text-align:center;opacity:0.6">No messages yet. Share your link!</p>
+      </div>
+      <div style="margin-top:24px;border-top:1px solid rgba(255,255,255,0.1);padding-top:16px">
+        <p style="font-size:0.9rem;opacity:0.8;margin-bottom:8px">👇 Share this link to receive wishes:</p>
+        <input id="myShareLink" readonly>
+        <div class="row" style="margin-top:8px"><button type="button" id="copyMyLink">Copy Link</button></div>
+      </div>
+    </section>
+
     <!-- Debug panel removed -->
 
     <!-- Footer -->
     <footer class="footer">
-      <p><strong>Powered by Uttaranchal University Club Expression</strong></p>
+      <p><strong>Powered by Expressions, Literary Club, Uttaranchal Institute of Technology</strong></p>
       <p class="footer-desc">A Literacy Club for the Students of Uttaranchal University</p>
-      <p class="footer-copyright">© 2026 Uttaranchal University Club Expression. All rights reserved.</p>
+      <p class="footer-copyright">© 2026 Expressions, Literary Club, Uttaranchal Institute of Technology. All rights reserved.</p>
     </footer>
   </main>
 
@@ -115,7 +142,7 @@
     </a>
 
 
-  <script src="script.js"></script>
+  <script type="module" src="script.js"></script>
   <a class="insta-float" href="https://www.instagram.com/uitliteraryclub?igsh=b3J4ZmxsdTBvdDdo" target="_blank" rel="noopener" aria-label="Visit our Instagram">
     <span>📸</span> Visit our Instagram
   </a>
