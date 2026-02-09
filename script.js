@@ -168,11 +168,6 @@ if(wishForm && createLinkSection){
           });
 
           msgs.forEach((data) => {
-            // Create a "View" link that reuses wish.html logic
-            const payload = { to: "You", message: data.message, quote: data.quote, from: data.from };
-            const token = encodeData(payload);
-            const viewUrl = `wish.html?d=${token}`;
-
             const item = document.createElement('div');
             item.className = 'card';
             item.style.padding = '16px';
@@ -180,7 +175,6 @@ if(wishForm && createLinkSection){
             item.innerHTML = `
               <div style="font-weight:bold;color:#ffd3e0;margin-bottom:4px">${data.quote || 'New Wish'}</div>
               <div style="margin-bottom:12px">${data.message}</div>
-              <a href="${viewUrl}" target="_blank" style="display:inline-block;background:var(--accent);color:white;padding:6px 12px;border-radius:8px;text-decoration:none;font-size:0.85rem">View Card & Reply</a>
             `;
             list.appendChild(item);
           });
