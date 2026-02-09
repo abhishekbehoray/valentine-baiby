@@ -1,3 +1,31 @@
+// Import Firebase SDKs
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+// --- FIREBASE CONFIGURATION ---
+// TODO: Replace this with your actual Firebase project config from console.firebase.google.com
+// PASTE YOUR COPIED CONFIG HERE OVER THESE PLACEHOLDERS
+
+ const firebaseConfig = {
+  apiKey: "AIzaSyAtx5iZmWd-QfvyZ7pY4VyDnqlc6XMlW_c",
+  authDomain: "valentine-wish-v2.firebaseapp.com",
+  projectId: "valentine-wish-v2",
+  storageBucket: "valentine-wish-v2.firebasestorage.app",
+  messagingSenderId: "941252582001",
+  appId: "1:941252582001:web:dd55f4d6e722152db159d0"
+};
+
+// Safety check: Alert if config is still default
+if (firebaseConfig.apiKey.includes("REPLACE")) {
+  alert("Setup Required: You need to replace the placeholder keys in script.js with your NEW Firebase Project configuration.");
+}
+
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
 // Common util: base64 encode/decode for URL-safe strings
 function encodeData(obj){
   const s = JSON.stringify(obj);
@@ -29,27 +57,24 @@ function showConfetti(){
   setTimeout(()=>conf.remove(),2600);
 }
 
-// index.html behaviour
-if(document.getElementById('wishForm')){
-  const toName = document.getElementById('toName');
-  const message = document.getElementById('message');
-  // quote input is optional in the markup; handle if it's missing
-  const quote = document.getElementById('quote');
-  const fromName = document.getElementById('fromName');
-  const generate = document.getElementById('generate');
-  const preview = document.getElementById('preview');
-  const shareWA = document.getElementById('shareWA');
-  const result = document.getElementById('result');
-  const shareLink = document.getElementById('shareLink');
-  const copy = document.getElementById('copy');
-  const open = document.getElementById('open');
-  const emojiPanel = document.getElementById('emojiPanel');
+// --- MAIN APP LOGIC ---
 
-  // emoji clicks -> append to message
+const wishForm = document.getElementById('wishForm');
+const createLinkSection = document.getElementById('createLinkSection');
+const inboxSection = document.getElementById('inboxSection');
+
+// 1. SENDER & RECEIVER FLOW (index.html)
+if(wishForm && createLinkSection){
+  const urlParams = new URLSearchParams(window.location.search);
+  const toParam = urlParams.get('to');
+
+  // Emoji panel logic
+  const emojiPanel = document.getElementById('emojiPanel');
+  const messageInput = document.getElementById('message');
   if(emojiPanel){
     emojiPanel.addEventListener('click', e=>{
       if(e.target.classList.contains('emoji')){
-        message.value += (message.value ? ' ' : '') + e.target.textContent;
+        messageInput.value += (messageInput.value ? ' ' : '') + e.target.textContent;
       }
     });
   }
@@ -63,17 +88,17 @@ if(document.getElementById('wishForm')){
 
     // Decode recipient name
     try {
-      // The 'to' param is the UID. We might want to fetch the name from DB, 
-      // but for simplicity, let's assume the link might also carry a name or we just say "Send a wish"
-      // If you want to show the name, you'd need to fetch the user profile from Firestore here.
-      // For now, we'll just set the UI.
+      // Get name from URL parameter 'n'
+      const nameParam = urlParams.get('n');
+      const displayName = nameParam ? decodeURIComponent(nameParam) : "Anonymous User";
+
       const toInput = document.getElementById('toName');
-      toInput.value = "Anonymous User"; // Placeholder or fetch from DB
+      toInput.value = displayName;
       toInput.readOnly = true;
       toInput.style.opacity = '0.7';
       
       const logo = document.querySelector('.logo');
-      if(logo) logo.innerHTML = `<span class="spark">💖</span> Send a secret wish`;
+      if(logo) logo.innerHTML = `<span class="spark">💖</span> Send a secret wish to ${displayName}`;
 
       // Handle Send
       const sendBtn = document.getElementById('sendBtn');
@@ -117,7 +142,8 @@ if(document.getElementById('wishForm')){
         inboxSection.style.display = 'block';
         
         // Generate Share Link
-        const link = `${window.location.origin}${window.location.pathname}?to=${user.uid}`;
+        const uName = user.displayName || 'User';
+        const link = `${window.location.origin}${window.location.pathname}?to=${user.uid}&n=${encodeURIComponent(uName)}`;
         document.getElementById('myShareLink').value = link;
 
         // Listen for messages
@@ -180,6 +206,7 @@ if(document.getElementById('wishForm')){
             // Update profile with name so it's associated with the account
             try {
               await updateProfile(userCredential.user, { displayName: name });
+              window.location.reload();
             } catch (e) { console.error("Profile update failed", e); }
           }).catch((error) => {
             console.error(error);
@@ -264,6 +291,32 @@ if(document.getElementById('wishCard') || document.getElementById('error')){
 
     // celebration when viewing
     showConfetti();
+
+    // Inject "Copy Link" button to share the wish URL
+    const actionsRow = card.querySelector('.row') || card.querySelector('.actions');
+    if(actionsRow && !document.getElementById('copyWishUrl')){
+      const copyBtn = document.createElement('button');
+      copyBtn.id = 'copyWishUrl';
+      copyBtn.textContent = 'Copy Link';
+      copyBtn.style.marginRight = '8px';
+      
+      copyBtn.addEventListener('click', ()=>{
+        const url = window.location.href;
+        const tempInput = document.createElement('input');
+        document.body.appendChild(tempInput);
+        tempInput.value = url;
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        setTimeout(()=> copyBtn.textContent = originalText, 2000);
+      });
+      
+      // Insert before other buttons
+      actionsRow.insertBefore(copyBtn, actionsRow.firstChild);
+    }
 
     // Download as image: simple canvas render (includes image when present)
     const dlBtn = document.getElementById('downloadBtn');
