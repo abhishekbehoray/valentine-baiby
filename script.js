@@ -88,17 +88,17 @@ if(wishForm && createLinkSection){
 
     // Decode recipient name
     try {
-      // The 'to' param is the UID. We might want to fetch the name from DB, 
-      // but for simplicity, let's assume the link might also carry a name or we just say "Send a wish"
-      // If you want to show the name, you'd need to fetch the user profile from Firestore here.
-      // For now, we'll just set the UI.
+      // Get name from URL parameter 'n'
+      const nameParam = urlParams.get('n');
+      const displayName = nameParam ? decodeURIComponent(nameParam) : "Anonymous User";
+
       const toInput = document.getElementById('toName');
-      toInput.value = "Anonymous User"; // Placeholder or fetch from DB
+      toInput.value = displayName;
       toInput.readOnly = true;
       toInput.style.opacity = '0.7';
       
       const logo = document.querySelector('.logo');
-      if(logo) logo.innerHTML = `<span class="spark">💖</span> Send a secret wish`;
+      if(logo) logo.innerHTML = `<span class="spark">💖</span> Send a secret wish to ${displayName}`;
 
       // Handle Send
       const sendBtn = document.getElementById('sendBtn');
@@ -142,7 +142,8 @@ if(wishForm && createLinkSection){
         inboxSection.style.display = 'block';
         
         // Generate Share Link
-        const link = `${window.location.origin}${window.location.pathname}?to=${user.uid}`;
+        const uName = user.displayName || 'User';
+        const link = `${window.location.origin}${window.location.pathname}?to=${user.uid}&n=${encodeURIComponent(uName)}`;
         document.getElementById('myShareLink').value = link;
 
         // Listen for messages
@@ -205,6 +206,7 @@ if(wishForm && createLinkSection){
             // Update profile with name so it's associated with the account
             try {
               await updateProfile(userCredential.user, { displayName: name });
+              window.location.reload();
             } catch (e) { console.error("Profile update failed", e); }
           }).catch((error) => {
             console.error(error);
