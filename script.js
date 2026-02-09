@@ -175,6 +175,7 @@ if(wishForm && createLinkSection){
             item.innerHTML = `
               <div style="font-weight:bold;color:#ffd3e0;margin-bottom:4px">${data.quote || 'New Wish'}</div>
               <div style="margin-bottom:12px">${data.message}</div>
+              ${data.from ? `<div style="font-size:0.85rem;color:#bfc3d6;font-style:italic">— ${data.from}</div>` : ''}
             `;
             list.appendChild(item);
           });

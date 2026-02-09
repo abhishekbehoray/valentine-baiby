@@ -25,9 +25,6 @@ button#back,button#open{background:#444}
 .message{margin-top:18px;font-size:1.05rem}
 .from{margin-top:14px;color:var(--muted);font-size:0.95rem}
 
-/* Hide sender name on wish page */
-#fromLine{display:none !important}
-
 /* neon accent and animated blobs */
 .actions button{padding:12px 16px;font-weight:600}
 .bg-blob{position:fixed;left:-10%;top:-15%;width:420px;height:420px;border-radius:50%;filter:blur(60px);opacity:0.6;z-index:0}
