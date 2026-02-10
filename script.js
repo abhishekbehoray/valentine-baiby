@@ -1,6 +1,6 @@
 // Import Firebase SDKs
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 // --- FIREBASE CONFIGURATION ---
 // TODO: Replace this with your actual Firebase project config from console.firebase.google.com
@@ -160,7 +160,7 @@ if(wishForm && createLinkSection){
 
           // Client-side sort (Newest first)
           const msgs = [];
-          snapshot.forEach(doc => msgs.push(doc.data()));
+          snapshot.forEach(doc => msgs.push({ ...doc.data(), id: doc.id }));
           msgs.sort((a,b) => {
             const tA = a.timestamp ? a.timestamp.seconds : 0;
             const tB = b.timestamp ? b.timestamp.seconds : 0;
@@ -170,13 +170,30 @@ if(wishForm && createLinkSection){
           msgs.forEach((data) => {
             const item = document.createElement('div');
             item.className = 'card';
+            item.style.position = 'relative'; // Enable absolute positioning for delete button
             item.style.padding = '16px';
             item.style.background = 'rgba(255,255,255,0.05)';
             item.innerHTML = `
-              <div style="font-weight:bold;color:#ffd3e0;margin-bottom:4px">${data.quote || 'New Wish'}</div>
+              <div style="font-weight:bold;color:#ffd3e0;margin-bottom:4px;padding-right:24px">${data.quote || 'New Wish'}</div>
               <div style="margin-bottom:12px">${data.message}</div>
               ${data.from ? `<div style="font-size:0.85rem;color:#bfc3d6;font-style:italic">— ${data.from}</div>` : ''}
             `;
+
+            const delBtn = document.createElement('button');
+            delBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
+            delBtn.title = 'Delete';
+            // Override default button styles for a clean icon look
+            delBtn.style.cssText = 'position:absolute;top:10px;right:10px;padding:8px;background:transparent;border:none;box-shadow:none;opacity:0.6;cursor:pointer;line-height:0;border-radius:50%;transition:all 0.2s ease;color:#ff6b6b;';
+            
+            delBtn.onmouseenter = () => { delBtn.style.opacity = '1'; delBtn.style.background = 'rgba(255, 71, 87, 0.15)'; };
+            delBtn.onmouseleave = () => { delBtn.style.opacity = '0.6'; delBtn.style.background = 'transparent'; };
+
+            delBtn.onclick = async () => {
+              if(confirm('Are you sure you want to delete this wish?')) {
+                try { await deleteDoc(doc(db, "messages", data.id)); } catch(e){ alert(e.message); }
+              }
+            };
+            item.appendChild(delBtn);
             list.appendChild(item);
           });
         }, (error) => {
@@ -230,16 +247,6 @@ if(wishForm && createLinkSection){
   }
 }
 
-// Floating CTA click handler (opens Instagram or configured target)
-const cta = document.getElementById('ctaIg');
-if(cta){
-  cta.addEventListener('click', (e)=>{
-    e.preventDefault();
-    const url = cta.dataset.target || 'https://instagram.com';
-    window.open(url, '_blank', 'noopener');
-  });
-}
-
 // --- Inline preview rendering (used by index.html) ---
 function renderInlinePreview(data, token, url){
   const card = document.getElementById('previewCard');
@@ -257,7 +264,7 @@ function renderInlinePreview(data, token, url){
     // reuse wish.html's rendering logic by creating a temporary canvas render similar to download flow
     const w = 900, h = 900; const cnv = document.createElement('canvas'); cnv.width = w; cnv.height = h; const ctx = cnv.getContext('2d');
     const grad = ctx.createLinearGradient(0,0,0,h); grad.addColorStop(0,'#2b002e'); grad.addColorStop(1,'#120018'); ctx.fillStyle = grad; ctx.fillRect(0,0,w,h);
-    const drawAndFinish = ()=>{ ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.font='36px Poppins, serif'; ctx.fillStyle='#ffd6e8'; ctx.fillText((data.to?`To: ${data.to}`:'To: You'), w/2, 520); ctx.font='24px Poppins, serif'; ctx.fillStyle='#fff'; wrapText(ctx, data.message||'', w/2, 560, 760, 34); if(data.from) { ctx.font='22px Poppins, serif'; ctx.fillStyle='#ffdcee'; ctx.fillText('— ' + data.from, w/2, 820); } cnv.toBlob((blob)=>{ const u = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=u; a.download='valentine-wish.png'; a.click(); URL.revokeObjectURL(u); },'image/png'); };
+    const drawAndFinish = ()=>{ ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.font='36px Poppins, serif'; ctx.fillStyle='#ffd6e8'; ctx.fillText((data.to?`To: ${data.to}`:'To: You'), w/2, 520); ctx.font='24px Poppins, serif'; ctx.fillStyle='#fff'; wrapText(ctx, data.message||'', w/2, 560, 760, 34); if(data.from) { ctx.font='22px Poppins, serif'; ctx.fillStyle='#ffdcee'; ctx.fillText('— ' + data.from, w/2, 820); } cnv.toBlob((blob)=>{ const u = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=u; a.download='secret-wish.png'; a.click(); URL.revokeObjectURL(u); },'image/png'); };
     if(data.img){ const img = new Image(); img.onload = ()=>{ const iw=img.width, ih=img.height; const maxW = w-160; const sw = Math.min(maxW, iw); const sh = (sw/iw)*ih; ctx.save(); ctx.beginPath(); roundRect(ctx,80,60,sw,360,20); ctx.clip(); ctx.drawImage(img,80,60,sw,360); ctx.restore(); drawAndFinish(); }; img.onerror = ()=> drawAndFinish(); img.src = data.img; } else drawAndFinish();
   };
 }
@@ -330,7 +337,7 @@ if(document.getElementById('wishCard') || document.getElementById('error')){
         ctx.font = '36px Poppins, serif'; ctx.fillStyle='#ffd6e8'; ctx.fillText((data.to ? `To: ${data.to}` : 'To: You'), w/2, 520);
         ctx.font='24px Poppins, serif'; ctx.fillStyle='#fff'; wrapText(ctx, data.message || '', w/2, 560, 760, 34);
         if(data.from) { ctx.font='22px Poppins, serif'; ctx.fillStyle='#ffdcee'; ctx.fillText('— ' + data.from, w/2, 820); }
-        cnv.toBlob((blob)=>{ const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='valentine-wish.png'; a.click(); URL.revokeObjectURL(url); },'image/png');
+        cnv.toBlob((blob)=>{ const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='secret-wish.png'; a.click(); URL.revokeObjectURL(url); },'image/png');
       };
 
       if(data.img){
