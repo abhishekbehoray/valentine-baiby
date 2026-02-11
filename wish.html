@@ -58,12 +58,23 @@
         <button id="copyWish">Copy</button>
         <button id="shareWish">Share</button>
       </div>
+      <div style="margin-top:12px">
+        <button type="button" id="shareInstaBtn" style="background:linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);border:none;width:100%;font-weight:600;color:white;padding:12px;border-radius:8px;cursor:pointer;transition:transform 0.2s">Share on Instagram Story 📸</button>
+      </div>
     </div>
 
     <div id="error" class="hidden">
       <p>We couldn't find a wish in the link. Make sure you opened a complete share link.</p>
       <a href="index.html">Create a wish</a>
     </div>
+
+    <!-- Promo to create own inbox -->
+    <section class="card" style="margin-top:24px;text-align:center;padding:24px 20px;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.08)">
+      <div style="font-size:2.2rem;margin-bottom:12px;filter:drop-shadow(0 0 10px rgba(230,57,70,0.4))">💌</div>
+      <h3 style="margin-bottom:12px;font-size:1.3rem;background:linear-gradient(90deg,#fff,#ffd3e0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block">Get Anonymous Wishes</h3>
+      <p style="font-size:0.95rem;opacity:0.9;margin-bottom:20px;color:#e0e0e0">Create your own secret inbox and share it with friends!</p>
+      <a href="index.html" style="display:inline-block;text-decoration:none;background:linear-gradient(90deg,#e63946,#d62828);color:#fff;padding:14px 24px;border-radius:12px;font-weight:700;box-shadow:0 8px 20px rgba(230,57,70,0.3)">🚀 Create My Inbox</a>
+    </section>
   </main>
 
   <!-- Footer -->
@@ -77,5 +88,18 @@
   </a>
 
   <script type="module" src="script.js"></script>
+  <script>
+    document.getElementById('shareInstaBtn').addEventListener('click', async () => {
+      const url = window.location.href;
+      try {
+        await navigator.clipboard.writeText(url);
+        alert("Link copied! 📋\n\n1. Open Instagram Story\n2. Create a story (take a screenshot of this wish!)\n3. Use the 'Link' sticker and paste the link!");
+        window.location.href = "instagram://story-camera";
+      } catch (err) {
+        console.error('Failed to copy: ', err);
+        alert("Please copy the link manually and share on Instagram.");
+      }
+    });
+  </script>
 </body>
 </html>

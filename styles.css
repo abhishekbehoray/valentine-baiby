@@ -73,6 +73,17 @@ button#back,button#open{background:#444}
 @keyframes thread-glow-pulse{0%,100%{filter:drop-shadow(0 0 8px rgba(165,20,20,0.7))}50%{filter:drop-shadow(0 0 14px rgba(165,20,20,0.95))}}
 @keyframes accent-float{from{opacity:0;transform:scale(0)}to{opacity:0.7;transform:scale(1)}}
 
+/* Animations for eye-catching elements */
+@keyframes pulse-btn {
+  0% { transform: scale(1); box-shadow: 0 8px 25px rgba(230,57,70,0.35); }
+  50% { transform: scale(1.02); box-shadow: 0 12px 30px rgba(230,57,70,0.5); }
+  100% { transform: scale(1); box-shadow: 0 8px 25px rgba(230,57,70,0.35); }
+}
+@keyframes popIn {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 /* developer credit corner */
 .dev-credit{position:fixed;left:10px;bottom:8px;z-index:1120;color:rgba(255,255,255,0.78);background:rgba(0,0,0,0.22);padding:4px 8px;border-radius:6px;font-size:0.72rem;text-decoration:none;backdrop-filter:blur(4px);pointer-events:auto}
 .dev-credit:hover{color:#fff;background:rgba(0,0,0,0.32)}
